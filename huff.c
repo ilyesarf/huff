@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-Node* parse_info(char* info, int n, Node* symbols, int *m){
+Symbol* parse_info(char* info, int n, Symbol* symbols, int *m){
     int i = 0;
 
     for (int i = 0; i < n; i++){
@@ -18,7 +18,7 @@ Node* parse_info(char* info, int n, Node* symbols, int *m){
         
         if(!found){
             (*m)++;
-            symbols = realloc(symbols, (*m)*sizeof(Node));
+            symbols = realloc(symbols, (*m)*sizeof(Symbol));
             symbols[(*m)-1].letter = info[i];
             symbols[(*m)-1].occ = 1;
         }
@@ -28,7 +28,7 @@ Node* parse_info(char* info, int n, Node* symbols, int *m){
     return symbols;
 }
 
-void print_nodes(Node* symbols, int m){
+void print_symbols(Symbol* symbols, int m){
     for (int i = 0; i < m; i++){
         printf("Letter: %c, Occurrences: %d\n", symbols[i].letter, symbols[i].occ);
     }
@@ -43,7 +43,7 @@ int main(){
     printf("n = %d\n", n);
 
     int m=0;
-    Node* symbols = NULL;
+    Symbol* symbols = NULL;
 
     symbols = parse_info(info, n, symbols, &m);
 
