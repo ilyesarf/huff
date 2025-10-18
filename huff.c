@@ -3,27 +3,26 @@
 #include <stdlib.h>
 #include <string.h>
 
-void create_symbols(char* info, int n, Symbol** symbols, int *m){
+void create_symbols(char* info, int n, Node** symbols, int *m){
     int i = 0;
 
     for (int i = 0; i < n; i++){
         int found = 0;
         for (int j = 0; j < *m; j++){
             if ((*symbols)[j].letter == info[i]){
-                (*symbols)[j].occ++;
+                (*symbols)[j].val++;
                 found = 1;
                 j=*m;
             } 
         }
         
         if(!found){
-            //(*m)++;
-            //symbols = realloc(symbols, (*m)*sizeof(Symbol));
-            //symbols[(*m)-1].letter = info[i];
-            //symbols[(*m)-1].occ = 1;
-            Symbol s;
+            Node s;
             s.letter = info[i];
-            s.occ = 1;
+            s.is_leaf = 1;
+            s.val = 1;
+            s.left = NULL;
+            s.right = NULL;
             *symbols = append(*symbols, m, &s, sizeof(s));
         }
         
@@ -31,17 +30,23 @@ void create_symbols(char* info, int n, Symbol** symbols, int *m){
     
 }
 
-void print_symbols(Symbol* symbols, int m){
+void print_symbols(Node* symbols, int m){
     for (int i = 0; i < m; i++){
-        printf("Letter: %c, Occurrences: %d\n", symbols[i].letter, symbols[i].occ);
+        if (symbols[i].letter != ' '){
+
+            printf("%c, %d\t", symbols[i].letter, symbols[i].val);
+        } else{
+            printf("space, %d\t", symbols[i].val);
+        }
     }
+    printf("\n");
 }
 
-void sort_symbols(Symbol* symbols, int m){
+void sort_symbols(Node* symbols, int m){
     for (int i = 0; i < m; i++){
-        Symbol temp;
+        Node temp;
         for (int j = i+1; j < m; j++){
-            if (symbols[i].occ > symbols[j].occ){
+            if (symbols[i].val > symbols[j].val){
                 temp = symbols[i];
                 symbols[i] = symbols[j];
                 symbols[j] = temp;
@@ -50,26 +55,52 @@ void sort_symbols(Symbol* symbols, int m){
     }
 }
 
-void create_children(Child** children, int *p, Symbol* symbols, int m){
-    
-    for (int i=0; i < m; i+=2){
-        Child c;
-        c.left = &symbols[i];
-        c.val = c.left->occ;
-        if (&symbols[i+1] != NULL){
-            c.right = &symbols[i+1];
-            c.val += c.right->occ;
-        }
+Node* create_tree(Node* symbols, int n) {
+    if (n == 0) return NULL;
 
-        *children = append(*children, p, &c, sizeof(Child));
+    Node** nodes = malloc(n * sizeof(Node*));
+    for (int i = 0; i < n; i++) {
+        Node* leaf = malloc(sizeof(Node));
+        *leaf = symbols[i];
+        nodes[i] = leaf;
     }
+
+    int remaining = n;
+
+    while (remaining > 1) {
+        Node* left = nodes[0];
+        Node* right = nodes[1];
+
+        Node* parent = malloc(sizeof(Node));
+        parent->left = left;
+        parent->right = right;
+        parent->val = left->val + right->val;
+        parent->is_leaf = 0;
+        parent->letter = 0;
+
+        
+        for (int i = 2; i < remaining; i++) nodes[i - 2] = nodes[i];
+        nodes[remaining - 2] = parent;
+        remaining--; 
+    }
+
+    Node* root = nodes[0];
+    free(nodes);
+
+    return root;
 }
 
-void print_children(Child* children, int p){
-    for (int i = 0; i < p; i++){
-        printf("Child %d: val = %d, left = %c, right = %c\n", i, children[i].val, children[i].left->letter, children[i].right ? children[i].right->letter : 'N');
-    }
-} 
+void print_tree(Node* n, int depth){
+    if (!n) return;
+    for(int i=0;i<depth;i++) printf("  ");
+    if (n->is_leaf)
+        printf("Symbol '%c' (%d)\n", n->letter, n->val);
+    else
+        printf("Node (val=%d)\n", n->val);
+
+    print_tree(n->left, depth+1);
+    print_tree(n->right, depth+1);
+}
 
 int main(){
     char info[100];
@@ -80,7 +111,7 @@ int main(){
     printf("n = %d\n", n);
 
     int m=0;
-    Symbol* symbols = NULL;
+    Node* symbols = NULL;
 
     create_symbols(info, n, &symbols, &m);
 
@@ -88,13 +119,12 @@ int main(){
         sort_symbols(symbols, m);
     }
 
-    //print_symbols(symbols, m);
+    print_symbols(symbols, m);
 
-    int p=0;
-    Child* children = NULL;
-
-    create_children(&children, &p, symbols, m);
-    print_children(children, p);
+    Node* tree = create_tree(symbols, m);
+    
+    print_tree(tree, 0);
 
     free(symbols);
+    free(tree);
 }

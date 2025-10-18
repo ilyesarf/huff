@@ -2,22 +2,13 @@
 #include <stdio.h>
 #include <string.h>
 
-typedef struct{
-    char letter;
-    int occ;
-} Symbol;
-
-typedef struct{
+typedef struct Node {
     int val;
-    Symbol* left;
-    Symbol* right;
-} Child;
-
-typedef struct{
-    int val;
-    Child* left;
-    Child* right;
-} Parent;
+    char is_leaf; // 1 = Symbol, 0 = internal
+    char letter;  // only valid if is_leaf==1
+    struct Node* left;
+    struct Node* right;
+} Node;
 
 void* append(void* array, int* n, void* v, size_t v_size){
     (*n)++;
