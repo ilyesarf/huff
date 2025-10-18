@@ -34,6 +34,19 @@ void print_symbols(Symbol* symbols, int m){
     }
 }
 
+void sort_symbols(Symbol* symbols, int m){
+    for (int i = 0; i < m; i++){
+        Symbol temp;
+        for (int j = i+1; j < m; j++){
+            if (symbols[i].occ > symbols[j].occ){
+                temp = symbols[i];
+                symbols[i] = symbols[j];
+                symbols[j] = temp;
+            }
+        }
+    }
+}
+
 int main(){
     char info[100];
     printf("info = ");
@@ -47,7 +60,9 @@ int main(){
 
     symbols = parse_info(info, n, symbols, &m);
 
-    print_nodes(symbols, m);
+    sort_symbols(symbols, m);
+    
+    print_symbols(symbols, m);
 
     free(symbols);
 }
