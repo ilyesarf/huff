@@ -118,6 +118,26 @@ void generate_dictionary(Node* tree, char* code, int depth){
     
 }
 
+void decode(Node* tree, char* code){
+    int i = 0;
+    Node* n = tree;
+    while(i<strlen(code)+1){
+        if (n->is_leaf){
+            printf("%c", n->letter);
+            n=tree;
+        } else{ 
+            if (code[i] == '1'){
+                //printf("left\n");
+                n = n->left;
+            } else {
+                //printf("right\n");
+                n = n->right;
+            }
+            i++;
+        }
+    }
+}
+
 void free_tree(Node* node) {
     if (!node) return;
     free_tree(node->left);
@@ -151,6 +171,13 @@ int main(){
     char code[10];
     generate_dictionary(tree, code, 0);
     
+    char bin_code[100];
+    printf("enter binary code to decode: \n");
+    scanf("%s", bin_code);
+
+    decode(tree, bin_code);
+    printf("\n");
+
     free(symbols);
     free_tree(tree);
 }
