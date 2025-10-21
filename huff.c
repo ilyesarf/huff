@@ -3,66 +3,60 @@
 #include <stdlib.h>
 #include <string.h>
 
-void create_symbols(char* info, int n, Node** symbols, int *m){
+void create_symbols(char* info, int n, Node*** symbols, int *m){
     int i = 0;
-
     for (int i = 0; i < n; i++){
         int found = 0;
         for (int j = 0; j < *m; j++){
-            if ((*symbols)[j].letter == info[i]){
-                (*symbols)[j].val++;
+            if ((*symbols)[j]->letter == info[i]){
+                (*symbols)[j]->val++;
                 found = 1;
                 j=*m;
             } 
         }
         
         if(!found){
-            Node s;
-            s.letter = info[i];
-            s.is_leaf = 1;
-            s.val = 1;
-            s.left = NULL;
-            s.right = NULL;
-            *symbols = append(*symbols, m, &s, sizeof(s));
+            Node* s = malloc(sizeof(Node));
+            s->letter = info[i];
+            s->is_leaf = 1;
+            s->val = 1;
+            s->left = NULL;
+            s->right = NULL;
+            *symbols = append(*symbols, m, &s, sizeof(Node*));
         }
-        
     }
-    
 }
 
-void print_symbols(Node* symbols, int m){
+void print_symbols(Node** symbols, int m){
     for (int i = 0; i < m; i++){
-        if (symbols[i].letter != ' '){
-
-            printf("%c, %d\t", symbols[i].letter, symbols[i].val);
+        if (symbols[i]->letter != ' '){
+            printf("%c, %d\t", symbols[i]->letter, symbols[i]->val);
         } else{
-            printf("space, %d\t", symbols[i].val);
+            printf("space, %d\t", symbols[i]->val);
         }
     }
     printf("\n");
 }
 
-void sort_symbols(Node* symbols, int m){
+void sort_nodes(Node** nodes, int m){
     for (int i = 0; i < m; i++){
-        Node temp;
+        Node* temp;
         for (int j = i+1; j < m; j++){
-            if (symbols[i].val > symbols[j].val){
-                temp = symbols[i];
-                symbols[i] = symbols[j];
-                symbols[j] = temp;
+            if (nodes[i]->val > nodes[j]->val){
+                temp = nodes[i];
+                nodes[i] = nodes[j];
+                nodes[j] = temp;
             }
         }
     }
 }
 
-Node* create_tree(Node* symbols, int n) {
+Node* create_tree(Node** symbols, int n) {
     if (n == 0) return NULL;
 
     Node** nodes = malloc(n * sizeof(Node*));
     for (int i = 0; i < n; i++) {
-        Node* leaf = malloc(sizeof(Node));
-        *leaf = symbols[i];
-        nodes[i] = leaf;
+        nodes[i] = symbols[i];
     }
 
     int remaining = n;
@@ -79,9 +73,13 @@ Node* create_tree(Node* symbols, int n) {
         parent->letter = 0;
 
         
-        for (int i = 2; i < remaining; i++) nodes[i - 2] = nodes[i];
-        nodes[remaining - 2] = parent;
-        remaining--; 
+        nodes[0] = parent;
+        for (int i = 1; i < remaining - 1; i++) {
+            nodes[i] = nodes[i + 1];
+        }
+        remaining--;
+        
+        sort_nodes(nodes, remaining);
     }
 
     Node* root = nodes[0];
@@ -102,6 +100,31 @@ void print_tree(Node* n, int depth){
     print_tree(n->right, depth+1);
 }
 
+void generate_dictionary(Node* tree, char* code, int depth){
+    if(!tree) return;
+
+    if (tree->is_leaf){
+        code[depth] = '\0';
+        strcpy(tree->code, code);
+        printf("%c = %s\n", tree->letter, tree->code);
+        return;
+    }
+    
+    code[depth] = '1';
+    generate_dictionary(tree->left, code, depth+1);
+
+    code[depth] = '0';
+    generate_dictionary(tree->right, code, depth+1);
+    
+}
+
+void free_tree(Node* node) {
+    if (!node) return;
+    free_tree(node->left);
+    free_tree(node->right);
+    free(node);
+}
+
 int main(){
     char info[100];
     printf("info = ");
@@ -111,12 +134,12 @@ int main(){
     printf("n = %d\n", n);
 
     int m=0;
-    Node* symbols = NULL;
+    Node** symbols = NULL;
 
     create_symbols(info, n, &symbols, &m);
 
     if (symbols != NULL && m > 0) {
-        sort_symbols(symbols, m);
+        sort_nodes(symbols, m);
     }
 
     print_symbols(symbols, m);
@@ -125,6 +148,10 @@ int main(){
     
     print_tree(tree, 0);
 
+    char code[10];
+    generate_dictionary(tree, code, 0);
+    
     free(symbols);
-    free(tree);
+    free_tree(tree);
 }
+

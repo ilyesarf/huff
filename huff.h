@@ -5,7 +5,8 @@
 typedef struct Node {
     int val;
     char is_leaf; // 1 = Symbol, 0 = internal
-    char letter;  // only valid if is_leaf==1
+    char letter; //only for symbol
+    char code[10]; //only for symbol
     struct Node* left;
     struct Node* right;
 } Node;
