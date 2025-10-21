@@ -100,7 +100,7 @@ void print_tree(Node* n, int depth){
     print_tree(n->right, depth+1);
 }
 
-void generate_dictionary(Node* tree, char* code, int depth){
+void generate_codes(Node* tree, char* code, int depth){
     if(!tree) return;
 
     if (tree->is_leaf){
@@ -111,10 +111,24 @@ void generate_dictionary(Node* tree, char* code, int depth){
     }
     
     code[depth] = '1';
-    generate_dictionary(tree->left, code, depth+1);
+    generate_codes(tree->left, code, depth+1);
 
     code[depth] = '0';
-    generate_dictionary(tree->right, code, depth+1);
+    generate_codes(tree->right, code, depth+1);
+    
+}
+
+void encode(Node** symbols, int m, char* info) {
+    int n = strlen(info);
+    
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            if (symbols[j]->letter == info[i]) {
+                printf("%s", symbols[j]->code);
+                break;
+            }
+        }
+    }
     
 }
 
@@ -169,8 +183,12 @@ int main(){
     print_tree(tree, 0);
 
     char code[10];
-    generate_dictionary(tree, code, 0);
-    
+
+    generate_codes(tree, code, 0);
+    printf("compressed code: ");
+    encode(symbols, m, info);
+    printf("\n");
+
     char bin_code[100];
     printf("enter binary code to decode: \n");
     scanf("%s", bin_code);
